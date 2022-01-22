@@ -9,5 +9,6 @@ app.use(express.urlencoded({extended: false}));
 app.use(cors());
 
 app.use('/araosdevsm/login', require('./routes/login'));
+app.use('/araosdevsm/createaccount', require('./routes/newAccount'));
 
 app.listen(PORT, ()=>console.log('Server running on 5000'));

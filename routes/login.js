@@ -1,15 +1,12 @@
 const express = require('express');
-const mongojs = require('mongojs');
+const mongoDb = require('../common');
 const router = express.Router();
-
-const url = 'mongodb://localhost:27017/araosDevSM';
-const db = mongojs(url, ['users']);
 
 router.post('/', (req, res)=>{
     const userName = req.body.username;
     const password = req.body.password;
     let verified = false;
-    db.users.find((error, documents)=>{
+    mongoDb.db.users.find((error, documents)=>{
         if(error) {
             res.json({status: 400, credentialsVerified: 'FAILED'})
         }
