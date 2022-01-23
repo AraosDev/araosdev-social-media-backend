@@ -21,7 +21,6 @@ router.post('/', (req, res)=>{
             if(!doc.map(({email})=>email).includes(email)){
                 mongoDb.db.users.insertOne(obj, (err, response)=>{
                     if(err) res.json({status: 400, updated: "FAILED"});
-                    console.log(response);
                     if(response) {
                         res.json({status: 200, updated: "OK"});
                     }

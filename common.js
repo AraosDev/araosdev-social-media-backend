@@ -1,6 +1,6 @@
 const mongojs = require('mongojs');
 
-const mongoUrl = 'mongodb://localhost:27017/araosDevSM';
+const mongoUrl = 'mongodb+srv://seenus:seenu123@cluster0.pat3w.mongodb.net/araosdevsmdb?retryWrites=true&w=majority';
 const db = mongojs(mongoUrl, ["users"]);
 
 module.exports = {
