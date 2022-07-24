@@ -13,8 +13,8 @@ router.post('/', (req, res)=>{
         else{
             documents.map(doc=>{
                 if(doc.userName === userName && doc.password === password){
-                    const { userName, email, phoneNumber } = doc;
-                    res.json({status: 200, credentialsVerified: 'OK', details: { userName, email, phoneNumber }});
+                    const { userName, email, phoneNumber, friends } = doc;
+                    res.json({status: 200, credentialsVerified: 'OK', details: { userName, email, phoneNumber, friends }});
                     verified = true;
                 }
             });
