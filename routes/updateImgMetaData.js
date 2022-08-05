@@ -81,14 +81,17 @@ router.post("/:metaDataType/:updatedBy", (req, res) => {
                         metaDataType === "updateLike" ? "LIKE_" : "COMMENT_"
                       }UPDATED`;
                       res.status(200).json({ status, updates });
-                    }
+                    } else
+                      res
+                        .status(400)
+                        .json({ status: "ERROR_IN_UPDATING_METADATA" });
                   }
                 }
               );
-            }
+            } else res.status(404).json({ message: "POST_NOT_FOUND" });
           }
         });
-      }
+      } else res.status(404).json({ message: "LIKED_BY_USER_NOT_FOUND" });
     }
   });
 });
