@@ -23,6 +23,10 @@ router.post("/", (req, res) => {
         phoneNumber,
         password,
         friends: [],
+        friendRequests: {
+          requestedTo: [],
+          requestedBy: [],
+        },
       };
       if (!doc.map(({ email }) => email).includes(email)) {
         mongoDb.db.users.insertOne(obj, (err, response) => {

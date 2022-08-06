@@ -20,6 +20,14 @@ app.use(
 );
 app.use("/araosdevsm/createaccount", require("./routes/newAccount"));
 app.use("/araosdevsm/updateImgMetaData", require("./routes/updateImgMetaData"));
+app.use(
+  "/araosdevsm/searchfriends",
+  require("./routes/FriendRequests/searchFriends")
+);
+app.use(
+  "/araosdevsm/friendReq",
+  require("./routes/FriendRequests/handleRequests")
+);
 
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
 
