@@ -22,7 +22,7 @@ router.get("/:username", (req, res) => {
             if (userTimeline.length) {
               const timelineResponse = {
                 timelineImages: userTimeline.sort(
-                  (usr1, usr2) => usr1.postedOn - usr2.postedOn
+                  (usr1, usr2) => usr2.postedOn - usr1.postedOn
                 ),
                 imagePrefixUrl:
                   "https://storage.googleapis.com/araosdev-social-media",
