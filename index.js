@@ -24,6 +24,7 @@ app.use(
   "/araosdevsm/searchfriends",
   require("./routes/FriendRequests/searchFriends")
 );
+
 app.use(
   "/araosdevsm/friendReq",
   require("./routes/FriendRequests/handleRequests")
