@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoDb = require("../../common");
+const { BUCKET_URL } = require("../../constants/gcs");
 const router = express.Router();
 
 router.get("/:username", (req, res) => {
@@ -12,7 +13,7 @@ router.get("/:username", (req, res) => {
         username,
       ];
       if (usersFrnds.length) {
-        mongoDb.db["timeline-images"].find((err, timelineDoc) => {
+        mongoDb.db["timelineImages"].find((err, timelineDoc) => {
           if (err)
             res.status(400).json({ status: 400, error: "Unknown Error" });
           else {
@@ -24,8 +25,7 @@ router.get("/:username", (req, res) => {
                 timelineImages: userTimeline.sort(
                   (usr1, usr2) => usr2.postedOn - usr1.postedOn
                 ),
-                imagePrefixUrl:
-                  "https://storage.googleapis.com/araosdev-social-media",
+                imagePrefixUrl:BUCKET_URL,
               };
               res.status(200).json({ ...timelineResponse });
             } else

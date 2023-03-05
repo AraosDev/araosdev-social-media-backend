@@ -37,7 +37,7 @@ router.post("/:userName", (req, res) => {
               caption,
               commentSection: [],
             };
-            mongoDb.db["timeline-images"].insertOne(
+            mongoDb.db["timelineImages"].insertOne(
               metaData,
               (err, response) => {
                 if (err) res.status(400).json({ status: "UPLOAD_FAILED" });

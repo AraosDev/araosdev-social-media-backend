@@ -14,7 +14,7 @@ router.post("/:metaDataType/:updatedBy", (req, res) => {
       res.status(500).json({ message: "ERROR_IN_FINDING_LIKEDBY_USER" });
     else {
       if (userDoc.map(({ userName }) => userName).includes(updatedBy)) {
-        mongoDb.db["timeline-images"].find((postErr, postDoc) => {
+        mongoDb.db["timelineImages"].find((postErr, postDoc) => {
           if (postErr)
             res.status(500).json({ message: "ERROR_IN_FETCHING_POST" });
           else {
@@ -67,7 +67,7 @@ router.post("/:metaDataType/:updatedBy", (req, res) => {
                 userName: updatedPost.userName,
                 image: updatedPost.image,
               };
-              mongoDb.db["timeline-images"].updateOne(
+              mongoDb.db["timelineImages"].updateOne(
                 { ...filter },
                 { $set: { ...updates } },
                 (err, response) => {
