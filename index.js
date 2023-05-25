@@ -14,12 +14,7 @@ app.use(
   "/araosdevsm/gcp-apis/timeline-images",
   require("./routes/GoogleCloudRoutes/getTimelineImg")
 );
-app.use(
-  "/araosdevsm/gcp-apis/post-image",
-  require("./routes/GoogleCloudRoutes/postImage")
-);
 app.use("/araosdevsm/createaccount", require("./routes/newAccount"));
-app.use("/araosdevsm/updateImgMetaData", require("./routes/updateImgMetaData"));
 app.use(
   "/araosdevsm/searchfriends",
   require("./routes/FriendRequests/searchFriends")
@@ -32,8 +27,8 @@ app.use(
 
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
 
-//https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876
-//https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876
-//https://www.bezkoder.com/google-cloud-storage-nodejs-upload-file/
-//https://www.woolha.com/tutorials/node-js-upload-file-to-google-cloud-storage
-//https://stackoverflow.com/questions/36661795/how-to-upload-an-image-to-google-cloud-storage-from-an-image-url-in-node
+// https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876
+// https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876
+// https://www.bezkoder.com/google-cloud-storage-nodejs-upload-file/
+// https://www.woolha.com/tutorials/node-js-upload-file-to-google-cloud-storage
+// https://stackoverflow.com/questions/36661795/how-to-upload-an-image-to-google-cloud-storage-from-an-image-url-in-node
