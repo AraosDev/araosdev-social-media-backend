@@ -4,17 +4,27 @@ const { BUCKET_URL } = require("../../constants/gcs");
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  const { users } = req.body;
-  if (users.length) {
+  const { users } = req.query;
+  const userArr = users.split(',');
+  if (userArr.length) {
     mongoDb.db['timelineImages'].find((err, timelineDoc) => {
       if (err) res.status(500).json({ status: 500, error: "Internal Server Occurred" });
       else {
-        const userTimelineImgs = timelineDoc.filter((doc) =>
-          usersFrnds.includes(doc.userName)
+        const timelineImages = timelineDoc.filter((doc) =>
+        userArr.includes(doc.userName)
         );
+        if (timelineImages.length) {
+          const userTimelineImgs = {
+            timelineImages: timelineImages.sort((user1, user2) => user2.postedOn - user1.postedOn),
+            imagePrefixUrl: BUCKET_URL
+          };
+          res.status(200).json({...userTimelineImgs});
+        } else
+          res.status(404).json({status: 'FAILED', message: 'No timeline images found'})
       }
     })
   }
+  else return res.status(400).json({status: 'FAILED', message: 'No users provided.'})
 })
 
 router.get("/:username", (req, res) => {
