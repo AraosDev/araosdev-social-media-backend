@@ -105,7 +105,7 @@ router.patch('/:dataType', checkAuth, (req, res) => {
 router.use(multerMid.single("file"));
 
 router.post('/', checkAuth, async (req, res) => {
-  const { userName, _id } = req.user;
+  const { userName, _id, photo: userPhoto } = req.user;
   const { caption } = req.query;
 
   const uploadToGCSRes = await uploadToGcs(req.file, `${_id}/timeline`);
@@ -119,6 +119,7 @@ router.post('/', checkAuth, async (req, res) => {
       likedBy: [],
       caption,
       commentSection: [],
+      userPhoto
     };
 
     mongoDb.db['timelineImages'].insertOne(metaData, (err, response) => {
