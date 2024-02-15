@@ -8,13 +8,13 @@ const updateUserAndFriendDetials = (reqType, userDetails, frndDetails) => {
     friends: frndFriends,
     userName: frndName,
   } = frndDetails;
-  const { requestedTo: frndReqTo, requestedBy: frndReqBy } = frndFriendReqs;
+  const { requestedTo: frndReqTo, requestedBy: frndReqBy } = frndFriendReqs; // Seenu
   const {
     friendRequests: userFriendReqs,
     friends: userFriends,
     userName,
   } = userDetails;
-  const { requestedTo: userReqTo, requestedBy: userReqBy } = userFriendReqs;
+  const { requestedTo: userReqTo, requestedBy: userReqBy } = userFriendReqs; // araosDev
 
   switch (reqType) {
     case "SEND_REQ": {
@@ -55,7 +55,7 @@ const updateUserAndFriendDetials = (reqType, userDetails, frndDetails) => {
     }
 
     case "REJECT_REQ": {
-      if (userReqTo.includes(frndName) && !frndFriends.includes(userName)) {
+      if (frndReqBy.includes(userName) && !userFriends.includes(frndName)) {
         updatedUserDetails = {
           friendRequests: {
             requestedTo: userReqTo.filter((name) => name !== frndName),

@@ -1,56 +1,135 @@
 const express = require("express");
 const mongoDb = require("../../common");
 const { BUCKET_URL } = process.env;
+const { checkAuth } = require("../mdbFunctions/checkAuth");
 const router = express.Router();
+const multer = require("multer");
+const uploadToGcs = require("../GoogleCloudFns/insertImage");
+const { ObjectId } = require("mongodb");
 
-router.get('/', (req, res) => {
-  const { users } = req.body;
-  if (users.length) {
-    mongoDb.db['timelineImages'].find((err, timelineDoc) => {
-      if (err) res.status(500).json({ status: 500, error: "Internal Server Occurred" });
-      else {
-        const userTimelineImgs = timelineDoc.filter((doc) =>
-          usersFrnds.includes(doc.userName)
-        );
-      }
-    })
-  }
-})
+const multerMid = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    // no larger than 5mb.
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
-router.get("/:username", (req, res) => {
-  const username = req.params.username;
-  mongoDb.db.users.find((err, userDoc) => {
-    if (err) res.json({ status: 400, error: "Unknown Error" });
+router.get('/', checkAuth, (req, res) => {
+  const { user } = req;
+  if (user.userName && user.friends) {
+    const userArr = [user.userName, ...user.friends.map(({ userName }) => userName)]
+    if (userArr.length) {
+      mongoDb.db['timelineImages'].find((err, timelineDoc) => {
+        if (err) res.status(500).json({ status: 500, error: "Internal Server Occurred" });
+        else {
+          const timelineImages = timelineDoc.filter((doc) =>
+            userArr.includes(doc.userName)
+          );
+          if (timelineImages.length) {
+            const userTimelineImgs = {
+              timelineImages: timelineImages.sort((user1, user2) => user2.postedOn - user1.postedOn),
+              imagePrefixUrl: BUCKET_URL
+            };
+            res.status(200).json({ ...userTimelineImgs });
+          } else
+            res.status(404).json({ status: 'FAILED', message: 'No timeline images found' })
+        }
+      })
+    }
+    else return res.status(400).json({ status: 'FAILED', message: 'No users provided.' });
+  } else return res.status(400).json({ status: 'FAILED', message: 'User not found' });
+});
+
+router.patch('/:dataType', checkAuth, (req, res) => {
+  const user = req.user;
+  const { dataType } = req.params;
+  const { postId, comment, likedFlag } = req.body;
+
+  mongoDb.db['timelineImages'].find((postErr, postDocs) => {
+    if (postErr) res.status(500).json({ status: 'FAILED', message: "Unknown error occurred when fetching the post" });
     else {
-      const usersFrnds = [
-        ...userDoc.filter((doc) => doc.userName === username)[0].friends,
-        username,
-      ];
-      if (usersFrnds.length) {
-        mongoDb.db["timelineImages"].find((err, timelineDoc) => {
+      const updatedPost = postDocs.find(({ _id }) => postId === _id.toString());
+      if (updatedPost) {
+        let updates;
+        switch (dataType) {
+          case 'updateLike': {
+            const likes = likedFlag === 'INCREMENT' ? `${parseInt(updatedPost.likes) + 1}` : `${parseInt(updatedPost.likes) - 1}`;
+            const likedBy = likedFlag === 'INCREMENT' ? [
+              ...updatedPost.likedBy,
+              {
+                user: user.userName,
+                likedOn: Math.round(new Date().getTime() / 1000),
+              }
+            ] : updatedPost.likedBy.filter(({ user: likedUser }) => likedUser !== user.userName);
+            updates = { likes, likedBy };
+            break;
+          }
+          case 'updateComment': {
+            updates = {
+              commentSection: [
+                ...updatedPost.commentSection,
+                {
+                  userName: user.userName,
+                  comment,
+                  commentedOn: Math.round(new Date().getTime() / 1000),
+                }
+              ]
+            };
+            break;
+          }
+        }
+        mongoDb.db['timelineImages'].updateOne({ _id: ObjectId(postId) }, { $set: { ...updates } }, (err, response) => {
           if (err)
-            res.status(400).json({ status: 400, error: "Unknown Error" });
+            res
+              .status(500)
+              .json({ status: 'FAILED', message: "Unknown error occurred when updating the post", err });
           else {
-            const userTimeline = timelineDoc.filter((doc) =>
-              usersFrnds.includes(doc.userName)
-            );
-            if (userTimeline.length) {
-              const timelineResponse = {
-                timelineImages: userTimeline.sort(
-                  (usr1, usr2) => usr2.postedOn - usr1.postedOn
-                ),
-                imagePrefixUrl: BUCKET_URL,
-              };
-              res.status(200).json({ ...timelineResponse });
+            console.log(response);
+            if (response.nModified) {
+              res.status(200).json({ status: 'SUCCESS', updates });
             } else
               res
-                .status(404)
-                .json({ error: "There's no timeline pictures for this user" });
+                .status(500)
+                .json({ status: 'FAILED', message: "Unknown error occurred when updating the post" });
           }
         });
-      }
+      } else
+        res
+          .status(404)
+          .json({ status: 'FAILED', message: 'No Post found with this post id' });
     }
   });
+})
+
+router.use(multerMid.single("file"));
+
+router.post('/', checkAuth, async (req, res) => {
+  const { userName, _id, photo: userPhoto } = req.user;
+  const { caption } = req.query;
+
+  const uploadToGCSRes = await uploadToGcs(req.file, `${_id}/timeline`);
+
+  if (uploadToGCSRes === 'UPLOADED') {
+    const metaData = {
+      userName,
+      image: `${BUCKET_URL}/${_id}/timeline/${req.file.originalname}`,
+      postedOn: Math.round(new Date().getTime() / 1000),
+      likes: '0',
+      likedBy: [],
+      caption,
+      commentSection: [],
+      userPhoto
+    };
+
+    mongoDb.db['timelineImages'].insertOne(metaData, (err, response) => {
+      if (err) res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to MDB' });
+      if (response) res.status(200).json({ status: 'SUCCESS', data: { ...metaData } });
+      else res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to MDB' });
+    })
+  }
+
+  else res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to GCS' });
 });
 
 module.exports = router;
