@@ -1,7 +1,8 @@
 const express = require("express");
 var cors = require("cors");
+const globalErrorHandler = require("./models/globalErrorHandler");
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const app = express();
 
 app.use(express.json());
@@ -29,8 +30,8 @@ app.use(
   "/araosdevsm/friendReq",
   require("./routes/FriendRequests/handleRequests")
 );
-
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.use(globalErrorHandler);
+module.exports = app;
 
 //https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876
 //https://medium.com/@olamilekan001/image-upload-with-google-cloud-storage-and-node-js-a1cf9baa1876

@@ -1,5 +1,5 @@
-const { BUCKET_NAME } = require('../../constants/gcs');
 const storage = require('./gcsStorage');
+const { BUCKET_NAME } = process.env;
 
 const uploadToGcs = (file, folderName) => new Promise((resolve, reject) => {
     const { originalname, buffer } = file;
@@ -9,8 +9,8 @@ const uploadToGcs = (file, folderName) => new Promise((resolve, reject) => {
         resumable: false
     });
     blobStream.on('finish', () => resolve('UPLOADED'))
-    .on('error', () => reject('UPLOAD_FAILED'))
-    .end(buffer);
+        .on('error', () => reject('UPLOAD_FAILED'))
+        .end(buffer);
 });
 
 module.exports = uploadToGcs;

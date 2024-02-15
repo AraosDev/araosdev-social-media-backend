@@ -1,7 +1,21 @@
 const express = require("express");
 const mongoDb = require("../../common");
-const { BUCKET_URL } = require("../../constants/gcs");
+const { BUCKET_URL } = process.env;
 const router = express.Router();
+
+router.get('/', (req, res) => {
+  const { users } = req.body;
+  if (users.length) {
+    mongoDb.db['timelineImages'].find((err, timelineDoc) => {
+      if (err) res.status(500).json({ status: 500, error: "Internal Server Occurred" });
+      else {
+        const userTimelineImgs = timelineDoc.filter((doc) =>
+          usersFrnds.includes(doc.userName)
+        );
+      }
+    })
+  }
+})
 
 router.get("/:username", (req, res) => {
   const username = req.params.username;
@@ -25,7 +39,7 @@ router.get("/:username", (req, res) => {
                 timelineImages: userTimeline.sort(
                   (usr1, usr2) => usr2.postedOn - usr1.postedOn
                 ),
-                imagePrefixUrl:BUCKET_URL,
+                imagePrefixUrl: BUCKET_URL,
               };
               res.status(200).json({ ...timelineResponse });
             } else
