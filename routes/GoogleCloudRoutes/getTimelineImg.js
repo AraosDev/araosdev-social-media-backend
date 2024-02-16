@@ -6,6 +6,7 @@ const router = express.Router();
 const multer = require("multer");
 const uploadToGcs = require("../GoogleCloudFns/insertImage");
 const { ObjectId } = require("mongodb");
+const AppError = require("../../common/Utils/appError");
 
 const multerMid = multer({
   storage: multer.memoryStorage(),
@@ -15,30 +16,30 @@ const multerMid = multer({
   },
 });
 
-router.get('/', checkAuth, (req, res) => {
+router.get('/', checkAuth, (req, res, next) => {
   const { user } = req;
   if (user.userName && user.friends) {
     const userArr = [user.userName, ...user.friends.map(({ userName }) => userName)]
     if (userArr.length) {
       mongoDb.db['timelineImages'].find((err, timelineDoc) => {
-        if (err) res.status(500).json({ status: 500, error: "Internal Server Occurred" });
+        if (err) next(new AppError(500, "Internal Server Occurred"));
         else {
-          const timelineImages = timelineDoc.filter((doc) =>
-            userArr.includes(doc.userName)
-          );
+          const timelineImages = timelineDoc
+            .filter((doc) =>
+              userArr.includes(doc.userName)
+            );
           if (timelineImages.length) {
             const userTimelineImgs = {
               timelineImages: timelineImages.sort((user1, user2) => user2.postedOn - user1.postedOn),
               imagePrefixUrl: BUCKET_URL
             };
             res.status(200).json({ ...userTimelineImgs });
-          } else
-            res.status(404).json({ status: 'FAILED', message: 'No timeline images found' })
+          } else next(new AppError(404, 'No timeline images found'));
         }
       })
     }
-    else return res.status(400).json({ status: 'FAILED', message: 'No users provided.' });
-  } else return res.status(400).json({ status: 'FAILED', message: 'User not found' });
+    else next(new AppError(400, 'No users provided.'))
+  } else next(new AppError(400, 'User not found'));
 });
 
 router.patch('/:dataType', checkAuth, (req, res) => {
@@ -47,7 +48,7 @@ router.patch('/:dataType', checkAuth, (req, res) => {
   const { postId, comment, likedFlag } = req.body;
 
   mongoDb.db['timelineImages'].find((postErr, postDocs) => {
-    if (postErr) res.status(500).json({ status: 'FAILED', message: "Unknown error occurred when fetching the post" });
+    if (postErr) next(new AppError(500, 'Unknown error occurred when fetching the post'));
     else {
       const updatedPost = postDocs.find(({ _id }) => postId === _id.toString());
       if (updatedPost) {
@@ -104,7 +105,7 @@ router.patch('/:dataType', checkAuth, (req, res) => {
 
 router.use(multerMid.single("file"));
 
-router.post('/', checkAuth, async (req, res) => {
+router.post('/', checkAuth, async (req, res, next) => {
   const { userName, _id, photo: userPhoto } = req.user;
   const { caption } = req.query;
 
@@ -123,13 +124,12 @@ router.post('/', checkAuth, async (req, res) => {
     };
 
     mongoDb.db['timelineImages'].insertOne(metaData, (err, response) => {
-      if (err) res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to MDB' });
+      if (err) next(new AppError(500, 'Unknown error occurred when uploading to MDB'))
       if (response) res.status(200).json({ status: 'SUCCESS', data: { ...metaData } });
-      else res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to MDB' });
+      else next(new AppError(500, 'Unknown error occurred when uploading to MDB'));
     })
   }
-
-  else res.status(500).json({ status: 'FAILED', message: 'Unknown error occurred when uploading to GCS' });
+  else next(new AppError(500, 'Unknown error occurred when uploading to GCS'));
 });
 
 module.exports = router;

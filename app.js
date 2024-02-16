@@ -9,21 +9,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-app.use("/araosdevsm/login", require("./routes/login"));
 app.use("/araosdevsm/gcp-apis", require("./routes/GoogleCloudRoutes/testApi"));
 app.use(
   "/araosdevsm/gcp-apis/timeline-images",
   require("./routes/GoogleCloudRoutes/getTimelineImg")
-);
-app.use("/araosdevsm/createaccount", require("./routes/newAccount"));
-app.use(
-  "/araosdevsm/searchfriends",
-  require("./routes/FriendRequests/searchFriends")
-);
-
-app.use(
-  "/araosdevsm/friendReq",
-  require("./routes/FriendRequests/handleRequests")
 );
 app.use(globalErrorHandler);
 module.exports = app;
