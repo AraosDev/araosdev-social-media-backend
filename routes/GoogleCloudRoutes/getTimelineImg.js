@@ -1,12 +1,13 @@
 const express = require("express");
 const mongoDb = require("../../common");
 const { BUCKET_URL } = process.env;
-const { checkAuth } = require("../mdbFunctions/checkAuth");
+const { checkAuth } = require("../../controllers/auth");
 const router = express.Router();
 const multer = require("multer");
 const uploadToGcs = require("../GoogleCloudFns/insertImage");
 const { ObjectId } = require("mongodb");
-const AppError = require("../../common/Utils/appError");
+const { AppError } = require("../../common/Utils/appError");
+const { getTimelineImages } = require("../../controllers/timelineImages");
 
 const multerMid = multer({
   storage: multer.memoryStorage(),
@@ -16,7 +17,9 @@ const multerMid = multer({
   },
 });
 
-router.get('/', checkAuth, (req, res, next) => {
+router.get('/', checkAuth, getTimelineImages);
+
+/* router.get('/', checkAuth, (req, res, next) => {
   const { user } = req;
   if (user.userName && user.friends) {
     const userArr = [user.userName, ...user.friends.map(({ userName }) => userName)]
@@ -27,7 +30,8 @@ router.get('/', checkAuth, (req, res, next) => {
           const timelineImages = timelineDoc
             .filter((doc) =>
               userArr.includes(doc.userName)
-            );
+            )
+            .map((doc) => ({ ...doc, userPhoto: user.photo }));
           if (timelineImages.length) {
             const userTimelineImgs = {
               timelineImages: timelineImages.sort((user1, user2) => user2.postedOn - user1.postedOn),
@@ -40,7 +44,7 @@ router.get('/', checkAuth, (req, res, next) => {
     }
     else next(new AppError(400, 'No users provided.'))
   } else next(new AppError(400, 'User not found'));
-});
+}); */
 
 router.patch('/:dataType', checkAuth, (req, res) => {
   const user = req.user;
