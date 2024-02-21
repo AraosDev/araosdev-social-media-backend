@@ -16,7 +16,8 @@ const loggerMsg = {
 const ADSM_USER_SCHEMA = 'adsmUserSchema';
 const errorMsgs = {
     NO_TOKEN_ERR: 'Please login before accessing this resource',
-    NO_TIMELINE_IMAGES: 'There is no posts found currently.'
+    NO_TIMELINE_IMAGES: 'There is no posts posted currently.',
+    INVALID_IMAGE_ID: 'Provided image is neither no longer available or not valid a image.'
 }
 
 module.exports = { loggerMsg, errorMsgs, ADSM_USER_SCHEMA };

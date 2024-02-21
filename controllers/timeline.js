@@ -2,7 +2,6 @@ const { AppError } = require("../common/Utils/appError");
 const { errorMsgs } = require("../common/constants/global");
 const TimelineImages = require("../models/TimelineSchema");
 const uploadToGcs = require('../common/Utils/GoogleCloudFns/insertImage');
-const { ObjectId } = require("mongodb");
 const { default: mongoose } = require("mongoose");
 
 const { BUCKET_URL } = process.env;
@@ -45,6 +44,51 @@ exports.postTimelineImages = async (req, res, next) => {
                 data: { ...metaData, id },
             });
         }
+    } catch (e) {
+        next(e);
+    }
+}
+
+exports.updateTimelineImage = async (req, res, next) => {
+    try {
+        const user = req.user;
+        const { dataType } = req.params;
+        const { postId, comment, likedFlag } = req.body;
+
+        const image = await TimelineImages.findOne({ _id: new mongoose.Types.ObjectId(postId) });
+        console.log(image.toJSON())
+        if (image?._id) {
+            const updatedTime = Math.round(new Date().getTime() / 1000)
+            switch (dataType) {
+                case 'updateLike': {
+                    image.likes = likedFlag === 'INCREMENT' ? image.likes + 1 : image.likes - 1;
+                    image.likedBy = likedFlag === 'INCREMENT' ?
+                        [
+                            ...image.likedBy,
+                            {
+                                user: user._id,
+                                likedOn: updatedTime,
+                            }
+                        ]
+                        : image.likedBy.filter(({ user: likedUser }) => likedUser.toString() !== user._id.toString());
+                    break;
+                }
+                case 'updateComment': {
+                    image.commentSection = [
+                        ...image.commentSection,
+                        {
+                            user: user._id,
+                            comment,
+                            commentedOn: updatedTime,
+                        }
+                    ];
+                    break;
+                }
+                default: break;
+            }
+            const isUpdated = await image.save();
+            res.status(200).json({ status: 'SUCESS', data: isUpdated });
+        } else next(new AppError(400, errorMsgs.INVALID_IMAGE_ID));
     } catch (e) {
         next(e);
     }
