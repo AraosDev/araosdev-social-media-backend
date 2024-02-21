@@ -1,8 +1,8 @@
 const { promisify } = require('util');
 const { AppError } = require("../common/Utils/appError");
-const { jwt, getSignedToken, secret } = require('../common/Utils/jwt');
-const { errorMsgs, ADSM_USER_SCHEMA, UsersInAdsm } = require("../common/constants/global");
-const mongoose = require('mongoose');
+const { jwt, secret } = require('../common/Utils/jwt');
+const { errorMsgs } = require("../common/constants/global");
+const UsersInAdsm = require('../models/UserSchema');
 
 exports.checkAuth = async (req, res, next) => {
     const token = req.headers.authorization ? req.headers.authorization.split('Bearer ')[1] : '';
@@ -15,10 +15,8 @@ exports.checkAuth = async (req, res, next) => {
         .populate({ path: 'friends', strictPopulate: false, select: '-friendRequests -__v' })
         .populate({ path: 'friendRequests.requestedBy', strictPopulate: false, select: '-friendRequests -__v' })
         .populate({ path: 'friendRequests.requestedTo', strictPopulate: false, select: '-friendRequests -__v' });
-
     req.user = user;
     req.token = token;
-    console.log(user.toJSON());
 
     next();
 }

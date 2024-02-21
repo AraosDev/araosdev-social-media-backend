@@ -12,6 +12,12 @@ function getStatusCode(err) {
 }
 
 function handleErrorInLocal(err, res) {
+    console.error({
+        status: err.status,
+        message: err.message,
+        stack: err.stack,
+        errors: err
+    });
     res.status(err.statusCode).send({
         status: err.status,
         message: err.message,

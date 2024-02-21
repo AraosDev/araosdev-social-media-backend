@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { loggerMsg } = require("../common/constants/global");
-const UsersInAdsm = require('./UserSchema');
 const validator = require('validator');
 
 const adsmTimelineSchema = new mongoose.Schema(
@@ -16,7 +15,7 @@ const adsmTimelineSchema = new mongoose.Schema(
                         type: mongoose.Schema.ObjectId,
                         required: [true, loggerMsg.USERNAME_IS_REQUIRED],
                         unique: true,
-                        ref: UsersInAdsm.modelName,
+                        ref: 'adsmUserSchema',
                     },
                     comment: {
                         type: String,
@@ -35,17 +34,12 @@ const adsmTimelineSchema = new mongoose.Schema(
             validate: [validator.default.isEmail, loggerMsg.INVALID_IMAGE],
             unique: true,
         },
-        likedBy: {
-            type: [
-                {
-                    user: mongoose.Schema.ObjectId,
-                    ref: UsersInAdsm.modelName,
-                },
-                {
-                    likedOn: Number,
-                }
-            ]
-        },
+        likedBy: [
+            {
+                user: { type: mongoose.Schema.ObjectId, ref: 'adsmUserSchema' },
+                likedOn: Number
+            }
+        ],
         likes: {
             type: Number,
             default: 0,
@@ -57,7 +51,7 @@ const adsmTimelineSchema = new mongoose.Schema(
         userName: {
             type: mongoose.Schema.ObjectId,
             required: [true, loggerMsg.POSTED_USER_REQUIRED],
-            ref: UsersInAdsm.modelName
+            ref: 'adsmUserSchema'
         },
     },
     { toJSON: { virtuals: true }, toObject: { virtuals: true } }

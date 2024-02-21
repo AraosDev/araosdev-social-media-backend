@@ -2,17 +2,16 @@ const express = require("express");
 var cors = require("cors");
 const globalErrorHandler = require("./models/globalErrorHandler");
 
-const PORT = process.env.PORT || 5001;
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-app.use("/araosdevsm/gcp-apis", require("./routes/GoogleCloudRoutes/testApi"));
+app.use("/araosdevsm/gcp-apis", require("./routes/testApi"));
 app.use(
   "/araosdevsm/gcp-apis/timeline-images",
-  require("./routes/GoogleCloudRoutes/getTimelineImg")
+  require("./routes/timeline")
 );
 app.use(globalErrorHandler);
 module.exports = app;

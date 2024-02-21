@@ -1,13 +1,13 @@
 const express = require("express");
-const mongoDb = require("../../common");
+const mongoDb = require("../common");
 const { BUCKET_URL } = process.env;
-const { checkAuth } = require("../../controllers/auth");
+const { checkAuth } = require("../controllers/auth");
 const router = express.Router();
 const multer = require("multer");
-const uploadToGcs = require("../GoogleCloudFns/insertImage");
+const uploadToGcs = require("./GoogleCloudFns/insertImage");
 const { ObjectId } = require("mongodb");
-const { AppError } = require("../../common/Utils/appError");
-const { getTimelineImages } = require("../../controllers/timelineImages");
+const { AppError } = require("../common/Utils/appError");
+const { getTimelineImages } = require("../controllers/timeline");
 
 const multerMid = multer({
   storage: multer.memoryStorage(),
@@ -18,33 +18,6 @@ const multerMid = multer({
 });
 
 router.get('/', checkAuth, getTimelineImages);
-
-/* router.get('/', checkAuth, (req, res, next) => {
-  const { user } = req;
-  if (user.userName && user.friends) {
-    const userArr = [user.userName, ...user.friends.map(({ userName }) => userName)]
-    if (userArr.length) {
-      mongoDb.db['timelineImages'].find((err, timelineDoc) => {
-        if (err) next(new AppError(500, "Internal Server Occurred"));
-        else {
-          const timelineImages = timelineDoc
-            .filter((doc) =>
-              userArr.includes(doc.userName)
-            )
-            .map((doc) => ({ ...doc, userPhoto: user.photo }));
-          if (timelineImages.length) {
-            const userTimelineImgs = {
-              timelineImages: timelineImages.sort((user1, user2) => user2.postedOn - user1.postedOn),
-              imagePrefixUrl: BUCKET_URL
-            };
-            res.status(200).json({ ...userTimelineImgs });
-          } else next(new AppError(404, 'No timeline images found'));
-        }
-      })
-    }
-    else next(new AppError(400, 'No users provided.'))
-  } else next(new AppError(400, 'User not found'));
-}); */
 
 router.patch('/:dataType', checkAuth, (req, res) => {
   const user = req.user;
