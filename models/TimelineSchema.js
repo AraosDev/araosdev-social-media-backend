@@ -8,30 +8,27 @@ const adsmTimelineSchema = new mongoose.Schema(
             type: String,
             required: [true, loggerMsg.CAPTION_IS_REQUIRED],
         },
-        commentSection: {
-            type: [
-                {
-                    userName: {
-                        type: mongoose.Schema.ObjectId,
-                        required: [true, loggerMsg.USERNAME_IS_REQUIRED],
-                        unique: true,
-                        ref: 'adsmUserSchema',
-                    },
-                    comment: {
-                        type: String,
-                        default: '',
-                    },
-                    commentedOn: {
-                        type: Number,
-                        required: [true, loggerMsg.COMMENTED_ON_IS_REQUIRED],
-                    }
+        commentSection: [
+            {
+                user: {
+                    type: mongoose.Schema.ObjectId,
+                    required: [true, loggerMsg.USERNAME_IS_REQUIRED],
+                    ref: 'adsmUserSchema',
+                },
+                comment: {
+                    type: String,
+                    default: '',
+                },
+                commentedOn: {
+                    type: Number,
+                    required: [true, loggerMsg.COMMENTED_ON_IS_REQUIRED],
                 }
-            ]
-        },
+            }
+        ],
         image: {
             type: String,
             required: [true, loggerMsg.IMAGE_IS_REQUIRED],
-            validate: [validator.default.isEmail, loggerMsg.INVALID_IMAGE],
+            validate: [validator.default.isURL, loggerMsg.INVALID_IMAGE],
             unique: true,
         },
         likedBy: [
@@ -48,7 +45,7 @@ const adsmTimelineSchema = new mongoose.Schema(
             type: String,
             required: [true, loggerMsg.POSTED_ON_REQUIRED],
         },
-        userName: {
+        user: {
             type: mongoose.Schema.ObjectId,
             required: [true, loggerMsg.POSTED_USER_REQUIRED],
             ref: 'adsmUserSchema'

@@ -4,10 +4,9 @@ const { BUCKET_URL } = process.env;
 const { checkAuth } = require("../controllers/auth");
 const router = express.Router();
 const multer = require("multer");
-const uploadToGcs = require("./GoogleCloudFns/insertImage");
 const { ObjectId } = require("mongodb");
 const { AppError } = require("../common/Utils/appError");
-const { getTimelineImages } = require("../controllers/timeline");
+const { getTimelineImages, postTimelineImages } = require("../controllers/timeline");
 
 const multerMid = multer({
   storage: multer.memoryStorage(),
@@ -81,32 +80,6 @@ router.patch('/:dataType', checkAuth, (req, res) => {
 })
 
 router.use(multerMid.single("file"));
-
-router.post('/', checkAuth, async (req, res, next) => {
-  const { userName, _id, photo: userPhoto } = req.user;
-  const { caption } = req.query;
-
-  const uploadToGCSRes = await uploadToGcs(req.file, `${_id}/timeline`);
-
-  if (uploadToGCSRes === 'UPLOADED') {
-    const metaData = {
-      userName,
-      image: `${BUCKET_URL}/${_id}/timeline/${req.file.originalname}`,
-      postedOn: Math.round(new Date().getTime() / 1000),
-      likes: '0',
-      likedBy: [],
-      caption,
-      commentSection: [],
-      userPhoto
-    };
-
-    mongoDb.db['timelineImages'].insertOne(metaData, (err, response) => {
-      if (err) next(new AppError(500, 'Unknown error occurred when uploading to MDB'))
-      if (response) res.status(200).json({ status: 'SUCCESS', data: { ...metaData } });
-      else next(new AppError(500, 'Unknown error occurred when uploading to MDB'));
-    })
-  }
-  else next(new AppError(500, 'Unknown error occurred when uploading to GCS'));
-});
+router.post('/', checkAuth, postTimelineImages);
 
 module.exports = router;
