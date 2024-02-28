@@ -33,7 +33,7 @@ const adsmTimelineSchema = new mongoose.Schema(
         },
         likedBy: [
             {
-                user: { type: mongoose.Schema.ObjectId, ref: 'adsmUserSchema' },
+                user: { type: mongoose.Schema.ObjectId, ref: 'adsmUserSchema', required: [true, loggerMsg.LIKED_BY_USER_REQUIRED] },
                 likedOn: Number
             }
         ],

@@ -3,6 +3,7 @@ const { errorMsgs } = require("../common/constants/global");
 const TimelineImages = require("../models/TimelineSchema");
 const uploadToGcs = require('../common/Utils/GoogleCloudFns/insertImage');
 const { default: mongoose } = require("mongoose");
+const { transformTimelineImages } = require("../common/Utils/transformers/timeline");
 
 const { BUCKET_URL } = process.env;
 
@@ -10,10 +11,15 @@ exports.getTimelineImages = async (req, res, next) => {
     try {
         const { user } = req;
         const usersFriends = (user.friends || []).map(({ id }) => id);
-        const timelineImages = await TimelineImages.find({ user: { $in: [...usersFriends, user._id] } }).sort({ postedOn: -1 });
+        const timelineImages = await TimelineImages
+            .find({ user: { $in: [...usersFriends, user._id] } })
+            .sort({ postedOn: -1 })
+            .populate({ path: 'user', strictPopulate: false, select: 'photo userName' })
+            .populate({ path: 'likedBy.user', strictPopulate: false, select: 'photo userName' })
+            .populate({ path: 'commentSection.user', strictPopulate: false, select: 'photo userName' });
         if (timelineImages.length) {
             const timelineRes = {
-                timelineImages: timelineImages,
+                timelineImages: transformTimelineImages(timelineImages),
                 imagePrefixUrl: process.env.BUCKET_URL,
             }
             res.status(200).json(timelineRes);

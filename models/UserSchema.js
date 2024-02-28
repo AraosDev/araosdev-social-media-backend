@@ -1,7 +1,20 @@
 const { default: mongoose } = require("mongoose");
 const { ADSM_USER_SCHEMA } = require("../common/constants/global");
+const validator = require('validator');
 
 const adsmUserSchema = new mongoose.Schema({
+    userName: {
+        type: String,
+        required: [true],
+        unique: true,
+        minLength: 5,
+    },
+    email: {
+        type: String,
+        required: [true],
+        unique: true,
+        validate: [validator.default.isEmail, 'Please provide a valid email'],
+    },
     friends: {
         type: [
             {
@@ -25,6 +38,7 @@ const adsmUserSchema = new mongoose.Schema({
             },
         ],
     },
+    photo: String,
 },
     { toJSON: { virtuals: true }, toObject: { virtuals: true }, strict: false, collection: 'adsmuserschemas' }
 );
