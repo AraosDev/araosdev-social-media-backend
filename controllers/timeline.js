@@ -62,7 +62,6 @@ exports.updateTimelineImage = async (req, res, next) => {
         const { postId, comment, likedFlag } = req.body;
 
         const image = await TimelineImages.findOne({ _id: new mongoose.Types.ObjectId(postId) });
-        console.log(image.toJSON())
         if (image?._id) {
             const updatedTime = Math.round(new Date().getTime() / 1000)
             switch (dataType) {

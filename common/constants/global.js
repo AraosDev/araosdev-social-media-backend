@@ -1,5 +1,3 @@
-const { default: mongoose } = require("mongoose");
-
 const { PORT, NODE_ENV } = process.env;
 const loggerMsg = {
     DB_CONNECTION_SUCCESS: "Master DB is connected sucessfully",
