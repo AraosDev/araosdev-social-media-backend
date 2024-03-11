@@ -2,7 +2,10 @@ const express = require("express");
 var cors = require("cors");
 const globalErrorHandler = require("./models/globalErrorHandler");
 
+const userSessionWS = require('express-ws');
+
 const app = express();
+userSessionWS(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -13,6 +16,7 @@ app.use(
   "/araosdevsm/gcp-apis/timeline-images",
   require("./routes/timeline")
 );
+app.use('/araosdevsm/chats', require('./routes/userSession'));
 app.use(globalErrorHandler);
 module.exports = app;
 

@@ -39,6 +39,10 @@ const adsmUserSchema = new mongoose.Schema({
         ],
     },
     photo: String,
+    onlineStatus: {
+        type: String,
+        default: 'Unknown',
+    }
 },
     { toJSON: { virtuals: true }, toObject: { virtuals: true }, strict: false, collection: 'adsmuserschemas' }
 );
