@@ -12,7 +12,7 @@ exports.transformChatInfo = (unreadMsgCountByChat, chats) => {
             id: chatId,
             recepientDetails: type === 'ONE-ONE' ? members[0] : members,
             recentMessage: recentMessage.content,
-            unreadCount: groupUnReadCountByChat[chatId]
+            unreadCount: groupUnReadCountByChat[chatId] || 0,
         });
     }
 

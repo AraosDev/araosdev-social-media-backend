@@ -1,22 +1,20 @@
 const { default: mongoose } = require("mongoose");
 const Chats = require("../models/Chats");
 const Messages = require("../models/Messages");
+const UsersInAdsm = require("../models/UserSchema");
 
 exports.getUserChatsFromDb = async (userId) => {
     const userMongoId = new mongoose.Types.ObjectId(userId);
     const query = { members: { $in: [userMongoId] } };
     const populateQuery = { _id: { $ne: userMongoId } };
-    const chats = await Chats.find(query)
+    return await Chats.find(query)
         .populate({ path: 'members', strictPopulate: true, select: 'photo userName onlineStatus', match: populateQuery })
         .populate({ path: 'liveMembers', strictPopulate: true, select: 'photo userName onlineStatus', match: populateQuery })
         .populate({ path: 'recentMessage', strictPopulate: true, select: 'content' });
-    return chats ? chats.map(({ _doc }) => _doc) : [];
 };
 
-exports.getAllMessagesOfChat = async (chatId) => {
-    const chatMongoId = new mongoose.Types.ObjectId(chatId);
-    const messages = await Messages.find({ chatId: chatMongoId }).sort({ sentAt: 'desc' });
-    return messages ? messages.map(({ _doc }) => _doc) : [];
+exports.getAllMessagesOfChat = (chatId) => {
+    return Messages.find({ chatId }).sort({ sentAt: 'desc' });
 }
 
 exports.getUnreadCountByChat = async (chatIdArr = [], userId = '') => {
@@ -25,11 +23,36 @@ exports.getUnreadCountByChat = async (chatIdArr = [], userId = '') => {
     const matchUnread = {
         $match: {
             chatId: { $in: chatMongoIdArr },
-            readBy: { $nin: [userMongoId] }
+            sentBy: { $ne: userMongoId },
+            readBy: { $nin: [userMongoId] },
         }
     };
     const groupByChat = { $group: { _id: '$chatId', unreadCount: { $count: {} } } };
     const unreadCountByChat = await Messages.aggregate([matchUnread, groupByChat]);
 
     return unreadCountByChat;
+}
+
+exports.updateOnlineStatus = async (userId, onlineStatus) => {
+    const userMongoId = new mongoose.Types.ObjectId(userId);
+    await UsersInAdsm.findOneAndUpdate({ _id: userMongoId }, { onlineStatus });
+}
+
+exports.updateMessageDeliveredToUser = async (userId, chatIdArr) => {
+    const userMongoId = new mongoose.Types.ObjectId(userId);
+    const updateAllMessagePromise = [];
+    const update = { deliveredTo: [userMongoId] };
+    for (const chatId of chatIdArr) {
+        updateAllMessagePromise.push(Messages.findOneAndUpdate({ chatId }, update));
+    }
+    await Promise.all(updateAllMessagePromise);
+}
+
+exports.updateChatLiveMembers = async (chats, userId) => {
+    const updateLiveMembersPromise = [];
+    chats.forEach((chat) => {
+        chat.liveMembers.push(new mongoose.Types.ObjectId(userId));
+        updateLiveMembersPromise.push(chat.save());
+    });
+    await Promise.all(updateLiveMembersPromise);
 }
