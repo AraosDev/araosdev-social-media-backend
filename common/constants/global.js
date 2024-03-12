@@ -17,6 +17,9 @@ const errorMsgs = {
     NO_TIMELINE_IMAGES: 'There is no posts posted currently.',
     INVALID_IMAGE_ID: 'Provided image is neither no longer available or not valid a image.',
     MIN_PARTICIPANTS_NOT_MET: 'Please provide atleast 2 participants',
+    SENT_BY_REQUIRED: 'Please provide the sender of this message',
+    MSG_CONTENT_REQUIRED: 'Please provide a content for this message',
+    CHAT_REQUIRED: 'A message should be tied to a valid Chat',
 }
 
 module.exports = { loggerMsg, errorMsgs, ADSM_USER_SCHEMA };
