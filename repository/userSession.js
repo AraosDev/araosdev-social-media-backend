@@ -13,22 +13,6 @@ exports.getUserChatsFromDb = async (userId) => {
     return chats ? chats.map(({ _doc }) => _doc) : [];
 };
 
-exports.getRecentMessageByChats = async (chatMongoIdArr) => {
-    const matchChat = { $match: { chatId: { $in: chatMongoIdArr } } };
-    const recentMsgByChat = {
-        $group: {
-            _id: '$chatId',
-            recentMessage: {
-                $top: {
-                    output: ["$content"],
-                    sortBy: { sentAt: -1 }
-                }
-            }
-        }
-    };
-    return await Messages.aggregate([matchChat, recentMsgByChat]);
-}
-
 exports.getAllMessagesOfChat = async (chatId) => {
     const chatMongoId = new mongoose.Types.ObjectId(chatId);
     const messages = await Messages.find({ chatId: chatMongoId }).sort({ sentAt: 'desc' });
