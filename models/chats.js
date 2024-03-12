@@ -26,11 +26,9 @@ const adsmChats = new mongoose.Schema({
         enum: ['ONE-ONE', 'GROUP'],
         default: 'ONE-ONE',
     },
-    recentMessageId: {
-        type: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'adsmUserSchema',
-        }
+    recentMessage: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'messages',
     }
 }, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
