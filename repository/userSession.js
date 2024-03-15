@@ -33,9 +33,9 @@ exports.getUnreadCountByChat = async (chatIdArr = [], userId = '') => {
     return unreadCountByChat;
 }
 
-exports.updateOnlineStatus = async (userId, onlineStatus) => {
+exports.updateOnlineStatus = async (userId, status, socketId) => {
     const userMongoId = new mongoose.Types.ObjectId(userId);
-    await UsersInAdsm.findOneAndUpdate({ _id: userMongoId }, { onlineStatus });
+    await UsersInAdsm.findOneAndUpdate({ _id: userMongoId }, { onlineStatus: { status, socketId } });
 }
 
 exports.updateMessageDeliveredToUser = async (userId, chatIdArr) => {

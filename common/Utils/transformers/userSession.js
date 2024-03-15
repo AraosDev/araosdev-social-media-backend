@@ -10,7 +10,11 @@ exports.transformChatInfo = (unreadMsgCountByChat, chats) => {
         const chatId = _id.toString();
         transformedChatInfo.push({
             id: chatId,
-            recepientDetails: type === 'ONE-ONE' ? members[0] : members,
+            recepientDetails: type === 'ONE-ONE' ? {
+                photo: members[0].photo,
+                userName: members[0].userName,
+                onlineStatus: members[0].onlineStatus.status,
+            } : members,
             recentMessage: recentMessage.content,
             unreadCount: groupUnReadCountByChat[chatId] || 0,
         });
