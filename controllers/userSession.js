@@ -10,7 +10,7 @@ async function getChatInfoOfUser(userData) {
     const unreadMsgCountByChat = await getUnreadCountByChat(chatIdArr, userId);
     const transformedChatInfo = transformChatInfo(unreadMsgCountByChat, chatInfo);
 
-    return { transformedChatInfo, chats, chatIdArr, chatInfoo };
+    return { transformedChatInfo, chats, chatIdArr, chatInfo };
 }
 
 function broadCastUpdatedChatInfo(socket, userDataArr) {
@@ -20,11 +20,11 @@ function broadCastUpdatedChatInfo(socket, userDataArr) {
     });
 }
 
-exports.establishUserSession = (websocket) => {
-    websocket.on('message', catchWebSocketAsync(async (msg) => {
+exports.handleUserSession = (websocket) => {
+    websocket.on('getChatInfo', catchWebSocketAsync(async (msg, callback) => {
         const { onlineStatus, userId } = msg;
         const { transformedChatInfo, chats, chatIdArr, chatInfo } = await getChatInfoOfUser(msg);
-        websocket.send(transformedChatInfo);
+        callback(transformedChatInfo);
         await updateOnlineStatus(userId, onlineStatus, websocket.id);
         await updateMessageDeliveredToUser(userId, chatIdArr);
         await updateChatLiveMembers(chats, userId);
