@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const { loggerMsg } = require('./common/constants/global');
 const { Server } = require('socket.io');
-const { establishUserSession } = require('./controllers/userSession');
+const { handleUserSession } = require('./controllers/userSession');
+const { handleChatSession } = require('./controllers/chatSession');
 
 
 const { MASTER_DB_ENDPOINT: MASTER_DB, PORT } = process.env;
@@ -17,4 +18,5 @@ const httpServer = createServer(app);
 httpServer.listen(PORT, () => console.log(SERVER_CONNECTED));
 const io = new Server(httpServer);
 
-io.on('connection', establishUserSession);
+io.of('/araosdevsm/user-session').on('connection', handleUserSession);
+io.of('/araosdevsm/chat-session').on('connection', handleChatSession);
