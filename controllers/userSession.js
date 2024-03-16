@@ -1,3 +1,4 @@
+const { catchWebSocketAsync } = require("../common/Utils/appError");
 const { transformChatInfo } = require("../common/Utils/transformers/userSession");
 const { getUserChatsFromDb, getUnreadCountByChat, updateOnlineStatus, updateMessageDeliveredToUser, updateChatLiveMembers } = require("../repository/userSession");
 
@@ -9,7 +10,7 @@ async function getChatInfoOfUser(userData) {
     const unreadMsgCountByChat = await getUnreadCountByChat(chatIdArr, userId);
     const transformedChatInfo = transformChatInfo(unreadMsgCountByChat, chatInfo);
 
-    return { transformedChatInfo, chats, chatIdArr, chatInfo };
+    return { transformedChatInfo, chats, chatIdArr, chatInfoo };
 }
 
 function broadCastUpdatedChatInfo(socket, userDataArr) {
@@ -20,7 +21,7 @@ function broadCastUpdatedChatInfo(socket, userDataArr) {
 }
 
 exports.establishUserSession = (websocket) => {
-    websocket.on('message', async (msg) => {
+    websocket.on('message', catchWebSocketAsync(async (msg) => {
         const { onlineStatus, userId } = msg;
         const { transformedChatInfo, chats, chatIdArr, chatInfo } = await getChatInfoOfUser(msg);
         websocket.send(transformedChatInfo);
@@ -30,5 +31,5 @@ exports.establishUserSession = (websocket) => {
 
         const memberDetails = chatInfo.map(({ members }) => members.map(({ id, onlineStatus }) => ({ id, onlineStatus }))).flat();
         broadCastUpdatedChatInfo(websocket, memberDetails);
-    });
-}
+    }, websocket));
+};

@@ -1,12 +1,12 @@
 const { promisify } = require('util');
-const { AppError } = require("../common/Utils/appError");
+const { AppError, catchReqResAsync } = require("../common/Utils/appError");
 const { jwt, secret } = require('../common/Utils/jwt');
 const { errorMsgs } = require("../common/constants/global");
 const UsersInAdsm = require('../models/UserSchema');
 
-exports.checkAuth = async (req, res, next) => {
+exports.checkAuth = catchReqResAsync(async (req, res, next) => {
     const token = req.headers.authorization ? req.headers.authorization.split('Bearer ')[1] : '';
-    if (!token) return new AppError(401, errorMsgs.NO_TOKEN_ERR);
+    if (!token) return next(new AppError(401, errorMsgs.NO_TOKEN_ERR));
 
     const decodedUser = await promisify(jwt.verify)(token, secret);
 
@@ -19,4 +19,4 @@ exports.checkAuth = async (req, res, next) => {
     req.token = token;
 
     next();
-}
+});

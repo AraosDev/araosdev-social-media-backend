@@ -1,3 +1,28 @@
+const ENV = process.env.NODE_ENV;
+
+const catchReqResAsync = (fn) => (req, res, next) => fn(req, res, next).catch(next);
+
+const catchWebSocketAsync = (func, websocket) => {
+    const handleError = (err) => {
+        const error = {
+            status: err.status || 500,
+            message: err.message || 'UNKNOWN_ERROR',
+            stack: err.stack || 'UNKNOWN_STACK',
+            errors: err
+        };
+        console.error(error)
+        websocket.send({ status: error.status, message: error.message, ...(ENV === 'local' ? { stack: error.stack, errors: error.errors } : {}) });
+    }
+    return (...args) => {
+        try {
+            const ret = func.apply(this, args);
+            if (ret && typeof ret.catch === 'function') ret.catch(handleError)
+        } catch (e) {
+            handleError(e);
+        }
+    }
+}
+
 class AppError extends Error {
     constructor(statusCode, message) {
         super(message);
@@ -9,4 +34,4 @@ class AppError extends Error {
     }
 }
 
-module.exports = { AppError };
+module.exports = { AppError, catchReqResAsync, catchWebSocketAsync };
