@@ -8,8 +8,8 @@ const MessagesSchema = new mongoose.Schema({
         required: [true, errorMsgs.SENT_BY_REQUIRED],
     },
     sentAt: {
-        type: Date,
-        default: new Date(),
+        type: String,
+        default: new Date().toISOString(),
     },
     deliveredTo: {
         type: [
@@ -31,7 +31,7 @@ const MessagesSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['TEXT' | 'AUDIO' | 'VIDEO' | 'DOCUMENT'],
+        enum: ['TEXT', 'AUDIO', 'VIDEO', 'DOCUMENT'],
         default: 'TEXT'
     },
     content: {

@@ -12,15 +12,15 @@ const adsmChats = new mongoose.Schema({
         required: [true],
         validate: [(val) => val.length === 2, errorMsgs.MIN_PARTICIPANTS_NOT_MET],
     },
-    liveMembers: {
-        type: [
-            {
+    liveMembers: [
+        {
+            user: {
                 type: mongoose.Schema.ObjectId,
                 ref: 'adsmUserSchema',
             },
-        ],
-        default: [],
-    },
+            socketId: String,
+        }
+    ],
     type: {
         type: String,
         enum: ['ONE-ONE', 'GROUP'],
