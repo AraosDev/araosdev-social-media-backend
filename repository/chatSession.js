@@ -23,11 +23,19 @@ exports.updateLiveMembers = async (chatId, userId, socketId) => {
     const mongoChatId = new mongoose.Types.ObjectId(chatId);
     const mongoUserId = new mongoose.Types.ObjectId(userId);
 
-    const chat = await Chats.findById(mongoChatId);
-    if (!chat.liveMembers.some((member) => member.user.toString() === userId)) {
+    const chat = await Chats.findById(mongoChatId)
+        .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' });
+    if (!chat.liveMembers.some((member) => member.user._id.toString() === userId)) {
         chat.liveMembers.push({ user: mongoUserId, socketId });
     }
-    await chat.save();
+    return (
+        await chat.save()
+        /* .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' }) */
+    )
 }
 
 exports.getChatInfo = (chatId) => {
@@ -45,5 +53,10 @@ exports.createMessage = async (messageDoc) => {
 }
 
 exports.updateLastMessageInChat = async (chatId, recentMessage) => {
-    await Chats.findByIdAndUpdate(new mongoose.Types.ObjectId(chatId), { recentMessage });
+    const updated = await Chats
+        .findByIdAndUpdate(new mongoose.Types.ObjectId(chatId), { recentMessage }, { returnDocument: 'after' })
+        .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' })
+        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' });
+    return updated;
 }
