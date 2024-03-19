@@ -30,12 +30,17 @@ exports.updateLiveMembers = async (chatId, userId, socketId) => {
     if (!chat.liveMembers.some((member) => member.user._id.toString() === userId)) {
         chat.liveMembers.push({ user: mongoUserId, socketId });
     }
-    return (
-        await chat.save()
-        /* .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus' })
-        .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' })
-        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' }) */
-    )
+    return await chat.save();
+}
+
+exports.deactivateLiveMembers = async (socketId) => {
+    const chat = await Chats
+        .findOne({ "liveMembers.socketId": socketId })
+        .select('liveMembers')
+        .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' });
+    const liveMemberIndex = chat.liveMembers.findIndex((member) => member.socketId === socketId)
+    if (liveMemberIndex !== -1) chat.liveMembers.splice(liveMemberIndex, 1);
+    return await chat.save();
 }
 
 exports.getChatInfo = (chatId) => {

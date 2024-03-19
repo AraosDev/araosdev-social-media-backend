@@ -43,3 +43,12 @@ exports.updateMessageDeliveredToUser = async (userId, chatIdArr) => {
     }
     await Promise.all(updateAllMessagePromise);
 }
+
+exports.disconnectOnlineUser = async (socketId) => {
+    const query = { "onlineStatus.socketId": socketId };
+    const update = { "onlineStatus.status": new Date().toISOString(), "onlineStatus.socketId": null };
+    return await UsersInAdsm
+        .findOneAndUpdate(query, update)
+        .select('friends')
+        .populate({ path: 'friends', strictPopulate: false, select: 'onlineStatus' });
+}

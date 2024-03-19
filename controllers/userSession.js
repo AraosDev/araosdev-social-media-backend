@@ -1,6 +1,6 @@
 const { catchWebSocketAsync } = require("../common/Utils/appError");
 const { transformChatInfo } = require("../common/Utils/transformers/userSession");
-const { getUserChatsFromDb, getUnreadCountByChat, updateOnlineStatus, updateMessageDeliveredToUser } = require("../repository/userSession");
+const { getUserChatsFromDb, getUnreadCountByChat, updateOnlineStatus, updateMessageDeliveredToUser, disconnectOnlineUser } = require("../repository/userSession");
 
 async function getChatInfoOfUser(userData) {
     const { userId } = userData;
@@ -31,4 +31,9 @@ exports.handleUserSession = (websocket) => {
         const memberDetails = chatInfo.map(({ members }) => members.map(({ id, onlineStatus }) => ({ id, onlineStatus }))).flat();
         this.broadCastUpdatedChatInfo(websocket, memberDetails);
     }, websocket));
+
+    websocket.on('disconnect', async () => {
+        const userInfo = await disconnectOnlineUser(websocket.id);
+        this.broadCastUpdatedChatInfo(websocket, userInfo.friends);
+    });
 };
