@@ -1,7 +1,7 @@
 const { catchWebSocketAsync } = require("../common/Utils/appError");
 const { transformMessages, createMessageDoc } = require("../common/Utils/transformers/chatSession");
 const { transformChatInfo } = require("../common/Utils/transformers/userSession");
-const { getAllMessagesOfChat, updateReadByInMessage, updateLiveMembers, createMessage, updateLastMessageInChat } = require("../repository/chatSession");
+const { getAllMessagesOfChat, updateReadByInMessage, updateLiveMembers, createMessage, updateLastMessageInChat, deactivateLiveMembers } = require("../repository/chatSession");
 const { getUserChatsFromDb, getUnreadCountByChat } = require("../repository/userSession");
 
 async function broadCastUpdatedMessageInfo(chatInfo, userId, socket) {
@@ -48,7 +48,7 @@ exports.handleChatSession = (websocket, io) => {
     }, websocket));
 
     websocket.on('sendMessage', catchWebSocketAsync(async (data, callback) => {
-        const { chatId, sentBy, content, type } = data;
+        const { chatId, sentBy } = data;
         const messageDoc = await createMessageDoc(data);
         const recentMessage = await createMessage(messageDoc);
         await this.sendMessagesInfo({ chatId, userId: sentBy }, callback);
@@ -56,4 +56,8 @@ exports.handleChatSession = (websocket, io) => {
         await broadCastUpdatedMessageInfo(chatInfo, sentBy, websocket);
         broadCastUpdatedChatInfo(chatInfo.members, io);
     }, websocket));
+
+    websocket.on('disconnect', async () => {
+        await deactivateLiveMembers(websocket.id);
+    });
 }
