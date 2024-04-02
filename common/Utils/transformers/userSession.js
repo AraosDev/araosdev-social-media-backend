@@ -15,7 +15,11 @@ exports.transformChatInfo = (unreadMsgCountByChat, chats) => {
                 userName: members[0].userName,
                 onlineStatus: members[0].onlineStatus.status,
             } : members,
-            recentMessage: recentMessage.content,
+            recentMessage: {
+                content: recentMessage.content,
+                sentAt: recentMessage.sentAt,
+                sentBy: recentMessage.sentBy.userName,
+            },
             unreadCount: groupUnReadCountByChat[chatId] || 0,
         });
     }

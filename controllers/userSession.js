@@ -22,6 +22,7 @@ exports.broadCastUpdatedChatInfo = (socket, userDataArr) => {
 
 exports.handleUserSession = (websocket) => {
     websocket.on('getChatInfo', catchWebSocketAsync(async (msg, callback) => {
+        console.log('getUserInfo_event_triggered', websocket.id);
         const { onlineStatus, userId } = msg;
         const { transformedChatInfo, chatIdArr, chatInfo } = await getChatInfoOfUser(msg);
         callback(transformedChatInfo);
@@ -33,7 +34,8 @@ exports.handleUserSession = (websocket) => {
     }, websocket));
 
     websocket.on('disconnect', async () => {
+        console.log('disconnect_event_triggered', websocket.id);
         const userInfo = await disconnectOnlineUser(websocket.id);
-        this.broadCastUpdatedChatInfo(websocket, userInfo.friends);
+        if (userInfo) this.broadCastUpdatedChatInfo(websocket, userInfo.friends);
     });
 };

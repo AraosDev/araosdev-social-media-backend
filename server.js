@@ -16,6 +16,6 @@ mongoose.connect(MASTER_DB).then(() => console.log(DB_CONNECTION_SUCCESS));
 const httpServer = createServer(app);
 httpServer.listen(PORT, () => console.log(SERVER_CONNECTED));
 
-const io = new Server(httpServer);
+const io = new Server(httpServer, { cors: 'https://localhost:3000' });
 io.of('/araosdevsm/user-session').on('connection', (websocket) => handleUserSession(websocket, io));
 io.of('/araosdevsm/chat-session').on('connection', (websocket) => handleChatSession(websocket, io));
