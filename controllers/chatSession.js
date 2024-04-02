@@ -45,6 +45,7 @@ exports.handleChatSession = (websocket, io) => {
         await updateReadByInMessage(chatId, userId);
         const chatInfo = await updateLiveMembers(chatId, userId, websocket.id);
         await broadCastUpdatedMessageInfo(chatInfo, userId, websocket);
+        broadCastUpdatedChatInfo(chatInfo.members, io);
     }, websocket));
 
     websocket.on('sendMessage', catchWebSocketAsync(async (data, callback) => {

@@ -10,7 +10,7 @@ exports.getUserChatsFromDb = async (userId) => {
     return await Chats.find(query)
         .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus', match: populateQuery })
         .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus', match: populateQuery })
-        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' });
+        .populate({ path: 'recentMessage', strictPopulate: false, select: 'content sentAt sentBy', populate: { path: 'sentBy', select: 'userName', strictPopulate: false } });
 };
 
 exports.getUnreadCountByChat = async (chatIdArr = [], userId = '') => {
