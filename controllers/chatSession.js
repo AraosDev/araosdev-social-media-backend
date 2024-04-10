@@ -39,6 +39,7 @@ exports.sendMessagesInfo = async (data, callback) => {
 }
 
 exports.handleChatSession = (websocket, io) => {
+    console.log('CHAT_SESSION_CONNECTED', websocket.id);
     websocket.on('getMessagesOfChat', catchWebSocketAsync(async (data, callback) => {
         const { chatId, userId } = data;
         await this.sendMessagesInfo(data, callback);
@@ -59,6 +60,7 @@ exports.handleChatSession = (websocket, io) => {
     }, websocket));
 
     websocket.on('disconnect', async () => {
-        await deactivateLiveMembers(websocket.id);
+        console.log('chat_disconnect_triggered', websocket.id);
+        if (websocket.id) await deactivateLiveMembers(websocket.id);
     });
 }

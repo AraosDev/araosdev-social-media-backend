@@ -1,6 +1,7 @@
 const { catchWebSocketAsync } = require("../common/Utils/appError");
-const { transformChatInfo } = require("../common/Utils/transformers/userSession");
-const { getUserChatsFromDb, getUnreadCountByChat, updateOnlineStatus, updateMessageDeliveredToUser, disconnectOnlineUser } = require("../repository/userSession");
+const { transformChatInfo, createChatDoc } = require("../common/Utils/transformers/userSession");
+const { getUserChatsFromDb, getUnreadCountByChat, updateOnlineStatus, disconnectOnlineUser, updateMessageDeliveredToUser, insertChatDoc } = require("../repository/userSession");
+const { sendMessagesInfo } = require("./chatSession");
 
 async function getChatInfoOfUser(userData) {
     const { userId } = userData;
@@ -12,6 +13,13 @@ async function getChatInfoOfUser(userData) {
 
     return { transformedChatInfo, chatIdArr, chatInfo };
 }
+async function updateMessagesAndBroadcast(io, liveMemberDetails) {
+    liveMemberDetails.forEach(async ({ socketId, userId, chatId }) => {
+        await sendMessagesInfo({ chatId, userId }, (messageResponse) => {
+            io.of('/araosdevsm/chat-session').to(socketId).emit('getMessagesOfChat', messageResponse);
+        });
+    });
+}
 
 exports.broadCastUpdatedChatInfo = (socket, userDataArr) => {
     userDataArr.forEach(async ({ id, onlineStatus }) => {
@@ -20,7 +28,7 @@ exports.broadCastUpdatedChatInfo = (socket, userDataArr) => {
     });
 }
 
-exports.handleUserSession = (websocket) => {
+exports.handleUserSession = (websocket, io) => {
     websocket.on('getChatInfo', catchWebSocketAsync(async (msg, callback) => {
         console.log('getUserInfo_event_triggered', websocket.id);
         const { onlineStatus, userId } = msg;
@@ -30,8 +38,18 @@ exports.handleUserSession = (websocket) => {
         await updateMessageDeliveredToUser(userId, chatIdArr);
 
         const memberDetails = chatInfo.map(({ members }) => members.map(({ id, onlineStatus }) => ({ id, onlineStatus }))).flat();
+        const liveMemberDetails = chatInfo.map(({ liveMembers, _id }) => liveMembers.map(({ user, socketId }) => ({ userId: user._id.toString(), socketId, chatId: _id.toString() }))).flat();
         this.broadCastUpdatedChatInfo(websocket, memberDetails);
+        await updateMessagesAndBroadcast(io, liveMemberDetails);
     }, websocket));
+
+    websocket.on('createChat', catchWebSocketAsync(async (msg, callback) => {
+        const { owner, member } = msg;
+        const chatDoc = createChatDoc(owner, member, websocket.id);
+        await insertChatDoc(chatDoc);
+        const { transformedChatInfo } = await getChatInfoOfUser({ userId: owner });
+        callback(transformedChatInfo);
+    }));
 
     websocket.on('disconnect', async () => {
         console.log('disconnect_event_triggered', websocket.id);

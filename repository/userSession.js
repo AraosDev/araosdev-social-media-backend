@@ -39,7 +39,7 @@ exports.updateMessageDeliveredToUser = async (userId, chatIdArr) => {
     const updateAllMessagePromise = [];
     const update = { deliveredTo: [userMongoId] };
     for (const chatId of chatIdArr) {
-        updateAllMessagePromise.push(Messages.findOneAndUpdate({ chatId, sentBy: { $ne: userMongoId } }, update));
+        updateAllMessagePromise.push(Messages.updateMany({ chatId, sentBy: { $ne: userMongoId } }, update));
     }
     await Promise.all(updateAllMessagePromise);
 }
@@ -51,4 +51,9 @@ exports.disconnectOnlineUser = async (socketId) => {
         .findOneAndUpdate(query, update)
         .select('friends')
         .populate({ path: 'friends', strictPopulate: false, select: 'onlineStatus' });
+}
+
+exports.insertChatDoc = async (chatDoc) => {
+    const insertedDoc = await Chats.insertMany(chatDoc);
+    return insertedDoc[0];
 }
