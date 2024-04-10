@@ -19,6 +19,13 @@ exports.updateReadByInMessage = async (chatId, userId) => {
     await Messages.updateMany(matchQuery, { $set: { readBy: [mongoUserId] } });
 }
 
+exports.updateDeliveredToInMessage = async (chatId, userId) => {
+    const mongoChatId = new mongoose.Types.ObjectId(chatId);
+    const mongoUserId = new mongoose.Types.ObjectId(userId);
+    const matchQuery = { chatId: mongoChatId, sentBy: { $ne: mongoUserId } };
+    await Messages.updateMany(matchQuery, { $set: { deliveredTo: [mongoUserId] } }, {});
+}
+
 exports.updateLiveMembers = async (chatId, userId, socketId) => {
     const mongoChatId = new mongoose.Types.ObjectId(chatId);
     const mongoUserId = new mongoose.Types.ObjectId(userId);
@@ -27,8 +34,18 @@ exports.updateLiveMembers = async (chatId, userId, socketId) => {
         .populate({ path: 'members', strictPopulate: false, select: 'photo userName onlineStatus' })
         .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' })
         .populate({ path: 'recentMessage', strictPopulate: false, select: 'content' });
-    if (!chat.liveMembers.some((member) => member.user._id.toString() === userId)) {
+    const liveMemberIndex = chat.liveMembers.findIndex((member) => member.user._id.toString() === userId);
+    if (liveMemberIndex === -1) {
         chat.liveMembers.push({ user: mongoUserId, socketId });
+    } else {
+        chat.liveMembers.splice(
+            liveMemberIndex,
+            1,
+            {
+                user: mongoUserId,
+                socketId,
+            }
+        );
     }
     return await chat.save();
 }
@@ -38,9 +55,11 @@ exports.deactivateLiveMembers = async (socketId) => {
         .findOne({ "liveMembers.socketId": socketId })
         .select('liveMembers')
         .populate({ path: 'liveMembers.user', strictPopulate: false, select: 'photo userName onlineStatus' });
-    const liveMemberIndex = chat.liveMembers.findIndex((member) => member.socketId === socketId)
-    if (liveMemberIndex !== -1) chat.liveMembers.splice(liveMemberIndex, 1);
-    return await chat.save();
+    if (chat) {
+        const liveMemberIndex = chat.liveMembers.findIndex((member) => member.socketId === socketId)
+        if (liveMemberIndex !== -1) chat.liveMembers.splice(liveMemberIndex, 1);
+        return await chat.save();
+    }
 }
 
 exports.getChatInfo = (chatId) => {
