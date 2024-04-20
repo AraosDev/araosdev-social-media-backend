@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
-
+app.get("/", (req, res) => res.send("Express on Vercel"));
 app.use("/araosdevsm/gcp-apis", require("./routes/testApi"));
 app.use(
   "/araosdevsm/gcp-apis/timeline-images",
