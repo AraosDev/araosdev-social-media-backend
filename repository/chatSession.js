@@ -1,6 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const Messages = require("../models/Messages");
-const Chats = require("../models/Chats");
+const Chats = require("../models/chats");
 
 exports.getAllMessagesOfChat = (chatId, userId) => {
     const populateQuery = { _id: { $ne: new mongoose.Types.ObjectId(userId) } };

@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const Chats = require("../models/Chats");
+const Chats = require("../models/chats");
 const Messages = require("../models/Messages");
 const UsersInAdsm = require("../models/UserSchema");
 
